@@ -1,5 +1,6 @@
 package com.dannbrown.astrosync.core
 
+import com.dannbrown.astrosync.AstroSyncConfig
 import com.dannbrown.astrosync.AstroSyncMod
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -9,9 +10,10 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 object NetworkUtils {
-  const val API_URL = "https://api.github.com/repos/${AstroSyncMod.REPO_OWNER}/${AstroSyncMod.REPO_NAME}/releases"
+
 
   private fun fetchReleases(): List<GithubRelease>? {
+    val API_URL = "https://api.github.com/repos/${AstroSyncConfig.RepoOwner.get()}/${AstroSyncConfig.RepoName.get()}/releases"
     try {
       val url = URL(API_URL)
       val conn = url.openConnection() as HttpURLConnection

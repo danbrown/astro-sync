@@ -1,0 +1,6 @@
+{
+  "astrosync.screen.title": "Atualização do AstroSync detectada",
+  "astrosync.screen.description": "O AstroSync detectou e baixou uma nova versão do pack.",
+  "astrosync.screen.restart": "Reinicie o jogo para aplicar as mudanças.",
+  "astrosync.screen.version": "Versão: %s"
+}

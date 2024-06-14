@@ -5,7 +5,9 @@ import com.dannbrown.astrosync.core.NetworkUtils
 import com.dannbrown.astrosync.core.UnzipUtils
 import com.dannbrown.astrosync.core.VersionUtils
 import net.minecraft.client.Minecraft
+import net.minecraftforge.fml.ModLoadingContext
 import net.minecraftforge.fml.common.Mod
+import net.minecraftforge.fml.config.ModConfig
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent
 import net.minecraftforge.fml.event.lifecycle.FMLDedicatedServerSetupEvent
 import org.apache.logging.log4j.Level
@@ -13,26 +15,26 @@ import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import thedarkcolour.kotlinforforge.forge.MOD_BUS
 import thedarkcolour.kotlinforforge.forge.runForDist
-import java.io.File
 
 @Mod(AstroSyncMod.MOD_ID)
 object AstroSyncMod {
     const val MOD_ID = "astrosync"
     const val NAME = "Astro Sync"
 
-    const val REPO_OWNER = "danbrown" // TODO: make this configurable
-    const val REPO_NAME = "minezada" // TODO: make this configurable
 
     @JvmField
     var needsUpdate: Boolean = false
     @JvmField
     var screenShown: Boolean = false
+    @JvmField
+    var newVersion: String = ""
 
     // the logger for our mod
     val LOGGER: Logger = LogManager.getLogger(MOD_ID)
 
     init {
-        LOGGER.log(Level.INFO, "Hello world!")
+        ModLoadingContext.get()
+          .registerConfig(ModConfig.Type.COMMON, AstroSyncConfig.SPEC, "$MOD_ID-common.toml")
 
         val obj = runForDist(
             clientTarget = {
@@ -65,11 +67,17 @@ object AstroSyncMod {
     }
 
     private fun checkForUpdates() {
+        // if no repo name is set, return
+        if (AstroSyncConfig.RepoName.get().isEmpty() || AstroSyncConfig.RepoOwner.get().isEmpty()) {
+            LOGGER.log(Level.ERROR, "Repo name or owner not set, cannot check for updates")
+            return
+        }
+
         // Check if the version is updated
         val latestRelease = NetworkUtils.fetchLatestRelease()
         if (latestRelease != null) {
             val releaseVersion = VersionUtils.getReleaseVersion(latestRelease)
-            val needsUpdate = VersionUtils.isVersionUpdated(REPO_NAME, releaseVersion)
+            val needsUpdate = VersionUtils.isVersionUpdated(AstroSyncConfig.RepoName.get(), releaseVersion)
             this.needsUpdate = needsUpdate
 
             if(!needsUpdate) {
@@ -80,9 +88,10 @@ object AstroSyncMod {
 
             // Version from API is higher than the current version, update
             LOGGER.log(Level.INFO, "New version available: $releaseVersion")
+            newVersion = releaseVersion
 
             // Get the download URL for the new version
-            val downloadUrl = NetworkUtils.getReleaseDownloadUrl(latestRelease, REPO_NAME, releaseVersion)
+            val downloadUrl = NetworkUtils.getReleaseDownloadUrl(latestRelease, AstroSyncConfig.RepoName.get(), releaseVersion)
 
             // if download url does not exist, return
             if (downloadUrl == null) {
@@ -116,7 +125,7 @@ object AstroSyncMod {
             LOGGER.log(Level.INFO, "New version extracted successfully")
 
             // Update version file
-            FileUtils.upsertVersionFile(REPO_NAME, releaseVersion)
+            FileUtils.upsertVersionFile(AstroSyncConfig.RepoName.get(), releaseVersion)
             LOGGER.log(Level.INFO, "Version file updated to $releaseVersion")
 
             // Clean up temp folder
