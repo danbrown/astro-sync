@@ -1,0 +1,15 @@
+{
+  "required": true,
+  "minVersion": "0.8.5",
+  "package": "com.dannbrown.astrosync.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "refmap": "astrosync.mixins.refmap.json",
+  "mixins": [
+  ],
+  "client": [
+    "MinecraftMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
