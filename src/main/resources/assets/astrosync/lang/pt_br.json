@@ -1,6 +1,9 @@
 {
-  "astrosync.screen.title": "Atualização do AstroSync detectada",
-  "astrosync.screen.description": "O AstroSync detectou e baixou uma nova versão do pack.",
-  "astrosync.screen.restart": "Reinicie o jogo para aplicar as mudanças.",
+  "astrosync.screen.title.failure": "Falha na atualização do AstroSync",
+  "astrosync.screen.description.failure": "O AstroSync detectou uma nova versão do modpack, mas falhou ao baixá-la.",
+  "astrosync.screen.restart.failure": "Reinicie para tentar novamente. Se o problema persistir, exclua a pasta 'astrosync' no diretório do jogo.",
+  "astrosync.screen.title.success": "Atualização do AstroSync baixada",
+  "astrosync.screen.description.success": "O AstroSync detectou e baixou com sucesso uma nova versão do modpack.",
+  "astrosync.screen.restart.success": "Reinicie o jogo para aplicar as mudanças.",
   "astrosync.screen.version": "Versão: %s"
 }

@@ -33,7 +33,7 @@ object VersionUtils {
   }
 
   fun isVersionUpdated(repoName: String, currentVersion: String): Boolean {
-    val fileVersion = FileUtils.gerVersionFromFile(repoName)
+    val fileVersion = FileUtils.getVersionFromFile(repoName)
     val higherVersion = compareVersions().compare(parseVersion(currentVersion), parseVersion(fileVersion))
     return higherVersion > 0
   }

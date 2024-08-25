@@ -7,6 +7,7 @@ import java.io.FileOutputStream
 import java.io.IOException
 import java.io.InputStream
 import java.nio.file.Path
+import java.util.zip.ZipException
 import java.util.zip.ZipFile
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.createDirectories
@@ -55,8 +56,26 @@ object UnzipUtils {
     }
   }
 
+  fun isValidZipFile(filePath: Path): Boolean {
+    return try {
+      ZipFile(filePath.toFile()).use { }
+      true
+    } catch (e: ZipException) {
+      println("Invalid ZIP file: ${e.message}")
+      false
+    } catch (e: IOException) {
+      println("I/O error: ${e.message}")
+      false
+    }
+  }
+
   @Throws(IOException::class)
   fun listZipFolders(zipFilePath: Path): List<String> {
+    if (!isValidZipFile(zipFilePath)) {
+      AstroSyncMod.LOGGER.error("Invalid modpack zip file, or it was incorrectly downloaded.")
+      return emptyList()
+    }
+
     val firstFolders = mutableSetOf<String>()
     ZipFile(zipFilePath.absolutePathString()).use { zip ->
       zip.entries().asSequence().forEach { entry ->

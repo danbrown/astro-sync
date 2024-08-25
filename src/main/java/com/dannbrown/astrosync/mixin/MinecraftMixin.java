@@ -12,12 +12,12 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 @Mixin(Minecraft.class)
 public class MinecraftMixin {
   @ModifyVariable(at = @At("HEAD"), method = "setScreen", argsOnly = true)
-  private Screen showUpdateScreen(Screen variable) {
-    if(!AstroSyncMod.screenShown && variable instanceof TitleScreen && AstroSyncMod.needsUpdate) {
+  private Screen showUpdateScreen(Screen screen) {
+    if(!AstroSyncMod.screenShown && screen instanceof TitleScreen && AstroSyncMod.needsUpdate) {
       AstroSyncMod.screenShown = true;
-      return new ModUpdateScreen(variable);
+      return new ModUpdateScreen(screen);
     }
 
-    return variable;
+    return screen;
   }
 }

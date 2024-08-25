@@ -28,6 +28,8 @@ object AstroSyncMod {
     var screenShown: Boolean = false
     @JvmField
     var newVersion: String = ""
+    @JvmField
+    var versionDownloaded: Boolean = false
 
     // the logger for our mod
     val LOGGER: Logger = LogManager.getLogger(MOD_ID)
@@ -88,7 +90,7 @@ object AstroSyncMod {
 
             // Version from API is higher than the current version, update
             LOGGER.log(Level.INFO, "New version available: $releaseVersion")
-            newVersion = releaseVersion
+            this.newVersion = releaseVersion
 
             // Get the download URL for the new version
             val downloadUrl = NetworkUtils.getReleaseDownloadUrl(latestRelease, AstroSyncConfig.RepoName.get(), releaseVersion)
@@ -111,6 +113,10 @@ object AstroSyncMod {
                 return
             }
             val folders = UnzipUtils.listZipFolders(zipPath.toPath())
+            if(folders.isEmpty()) {
+                LOGGER.log(Level.ERROR, "Stop: The modpack zip file was empty or corrupted.")
+                return
+            }
 
             // Delete old version folders
             FileUtils.deleteOldVersionFolders(folders)
@@ -130,6 +136,7 @@ object AstroSyncMod {
 
             // Clean up temp folder
             FileUtils.cleanTempFolder()
+            this.versionDownloaded = true
         }
     }
 }

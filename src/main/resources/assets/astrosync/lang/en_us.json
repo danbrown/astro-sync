@@ -1,6 +1,9 @@
 {
-  "astrosync.screen.title": "AstroSync update detected",
-  "astrosync.screen.description": "AstroSync has detected and downloaded a new pack version.",
-  "astrosync.screen.restart": "Restart the game to take effect.",
+  "astrosync.screen.title.failure": "AstroSync update failed",
+  "astrosync.screen.description.failure": "AstroSync has detected a new pack version, but failed to download it.",
+  "astrosync.screen.restart.failure": "Restart to try again. If the problem persists, delete the 'astrosync' folder in the game directory.",
+  "astrosync.screen.title.success": "AstroSync update downloaded",
+  "astrosync.screen.description.success": "AstroSync has detected and downloaded a new pack version successfully.",
+  "astrosync.screen.restart.success": "Restart the game to take effect.",
   "astrosync.screen.version": "Version: %s"
 }
