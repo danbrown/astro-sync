@@ -35,15 +35,17 @@ public class AstroSyncClient {
     }
 
     static private void checkForUpdates() {
-        if (AstroSyncConfig.RepoName.get().isEmpty() || AstroSyncConfig.RepoOwner.get().isEmpty()) {
+        String REPNAME = AstroSyncConfig.RepoName.get();
+        String REPOOWNER = AstroSyncConfig.RepoOwner.get();
+        if (REPNAME.isEmpty() || REPOOWNER.isEmpty()) {
             AstroSync.LOGGER.error("Repo name or owner not set, cannot check for updates");
             return;
         }
 
-        GithubRelease latestRelease = NetworkUtils.fetchLatestRelease();
+        GithubRelease latestRelease = NetworkUtils.fetchLatestRelease(REPOOWNER, REPNAME);
         if (latestRelease != null) {
             String releaseVersion = VersionUtils.getReleaseVersion(latestRelease);
-            AstroSync.needsUpdate = VersionUtils.isVersionUpdated(AstroSyncConfig.RepoName.get(), releaseVersion);
+            AstroSync.needsUpdate = VersionUtils.isVersionUpdated(REPNAME, releaseVersion);
 
             if (!AstroSync.needsUpdate) {
                 AstroSync.LOGGER.info("No new version available");
@@ -54,7 +56,7 @@ public class AstroSyncClient {
             AstroSync.LOGGER.info("New version available: " + releaseVersion);
             AstroSync.newVersion = releaseVersion;
 
-            String downloadUrl = NetworkUtils.getReleaseDownloadUrl(latestRelease, AstroSyncConfig.RepoName.get(), releaseVersion);
+            String downloadUrl = NetworkUtils.getReleaseDownloadUrl(latestRelease, REPNAME, releaseVersion);
 
             if (downloadUrl == null) {
                 AstroSync.LOGGER.error("Download URL not found");
@@ -98,7 +100,7 @@ public class AstroSyncClient {
                 return;
             }
 
-            FileUtils.upsertVersionFile(AstroSyncConfig.RepoName.get(), releaseVersion);
+            FileUtils.upsertVersionFile(REPNAME, releaseVersion);
             AstroSync.LOGGER.info("Version file updated to " + releaseVersion);
 
             FileUtils.cleanTempFolder();

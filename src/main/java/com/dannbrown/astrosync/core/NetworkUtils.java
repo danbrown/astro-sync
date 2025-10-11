@@ -14,11 +14,11 @@ import java.util.List;
 
 public class NetworkUtils {
 
-  private static List<GithubRelease> fetchReleases() {
+  private static List<GithubRelease> fetchReleases(String repoOwner, String repoName) {
     String API_URL = String.format(
             "https://api.github.com/repos/%s/%s/releases",
-            AstroSyncConfig.RepoOwner.get(),
-            AstroSyncConfig.RepoName.get()
+            repoOwner,
+            repoName
     );
 
     try {
@@ -50,8 +50,8 @@ public class NetworkUtils {
     return null;
   }
 
-  public static GithubRelease fetchLatestRelease() {
-    List<GithubRelease> releases = fetchReleases();
+  public static GithubRelease fetchLatestRelease(String repoOwner, String repoName) {
+    List<GithubRelease> releases = fetchReleases(repoOwner, repoName);
     if (releases == null || releases.isEmpty()) {
       return null;
     }

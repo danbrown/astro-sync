@@ -40,7 +40,6 @@ public class FileUtils {
         AstroSync.LOGGER.error("Error reading version file: " + e.getMessage());
       }
     }
-    upsertVersionFile(repoName, VersionUtils.PLACEHOLDER_VERSION);
     return VersionUtils.PLACEHOLDER_VERSION;
   }
 
