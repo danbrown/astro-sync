@@ -28,11 +28,11 @@ public class AstroSyncClient {
     }
 
     @SubscribeEvent
-    public static void onClientSetup(FMLClientSetupEvent event) {
-      // safe, runs after the client and config are ready
-      Minecraft.getInstance().execute(AstroSyncClient::checkForUpdates);
+    public static void onConfigLoad(final ModConfigEvent.Loading event) {
+        if (event.getConfig().getModId().equals(AstroSync.MOD_ID)) {
+            Minecraft.getInstance().execute(AstroSyncClient::checkForUpdates);
+        }
     }
-
 
     static private void checkForUpdates() {
         if (AstroSyncConfig.RepoName.get().isEmpty() || AstroSyncConfig.RepoOwner.get().isEmpty()) {
