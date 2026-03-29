@@ -12,13 +12,16 @@
     "discord": "${mod_discord}"
   },
   "license": "${mod_license}",
-  "environment": "client",
+  "environment": "*",
   "entrypoints": {
     "main": [
       "com.dannbrown.astrosync.AstroSync"
     ],
     "client": [
       "com.dannbrown.astrosync.AstroSyncClient"
+    ],
+    "server": [
+      "com.dannbrown.astrosync.AstroSyncDedicatedServer"
     ]
   },
   "mixins": [

@@ -1,6 +1,5 @@
 package com.dannbrown.astrosync.core;
 
-import com.dannbrown.astrosync.AstroSyncConfig;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
