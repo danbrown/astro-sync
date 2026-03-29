@@ -1,51 +1,34 @@
 package com.dannbrown.astrosync;
 
-import com.dannbrown.astrosync.core.*;
-import net.minecraft.client.Minecraft;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.ModContainer;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.fml.common.Mod;
-import net.neoforged.fml.event.config.ModConfigEvent;
-import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
-import net.neoforged.neoforge.client.gui.ConfigurationScreen;
-import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
-
+import com.dannbrown.astrosync.core.FileUtils;
+import com.dannbrown.astrosync.core.GithubRelease;
+import com.dannbrown.astrosync.core.NetworkUtils;
+import com.dannbrown.astrosync.core.UnzipUtils;
+import com.dannbrown.astrosync.core.VersionUtils;
+import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import java.io.File;
 import java.util.List;
 
-// This class will not load on dedicated servers. Accessing client side code from here is safe.
-@Mod(value = AstroSync.MOD_ID, dist = Dist.CLIENT)
-// You can use EventBusSubscriber to automatically register all static methods in the class annotated with @SubscribeEvent
-@EventBusSubscriber(modid = AstroSync.MOD_ID, value = Dist.CLIENT)
-public class AstroSyncClient {
-    public AstroSyncClient(ModContainer container) {
-        // Allows NeoForge to create a config screen for this mod's configs.
-        // The config screen is accessed by going to the Mods screen > clicking on your mod > clicking on config.
-        // Do not forget to add translations for your config options to the en_us.json file.
-        container.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
+public class AstroSyncClient implements ClientModInitializer {
+    @Override
+    public void onInitializeClient() {
+        AstroSyncConfig.load();
+        ClientLifecycleEvents.CLIENT_STARTED.register(client -> client.execute(AstroSyncClient::checkForUpdates));
     }
 
-    @SubscribeEvent
-    public static void onConfigLoad(final ModConfigEvent.Loading event) {
-        if (event.getConfig().getModId().equals(AstroSync.MOD_ID)) {
-            Minecraft.getInstance().execute(AstroSyncClient::checkForUpdates);
-        }
-    }
-
-    static private void checkForUpdates() {
-        String REPNAME = AstroSyncConfig.RepoName.get();
-        String REPOOWNER = AstroSyncConfig.RepoOwner.get();
-        if (REPNAME.isEmpty() || REPOOWNER.isEmpty()) {
+    private static void checkForUpdates() {
+        String repoName = AstroSyncConfig.getRepoName();
+        String repoOwner = AstroSyncConfig.getRepoOwner();
+        if (repoName.isEmpty() || repoOwner.isEmpty()) {
             AstroSync.LOGGER.error("Repo name or owner not set, cannot check for updates");
             return;
         }
 
-        GithubRelease latestRelease = NetworkUtils.fetchLatestRelease(REPOOWNER, REPNAME);
+        GithubRelease latestRelease = NetworkUtils.fetchLatestRelease(repoOwner, repoName);
         if (latestRelease != null) {
             String releaseVersion = VersionUtils.getReleaseVersion(latestRelease);
-            AstroSync.needsUpdate = VersionUtils.isVersionUpdated(REPNAME, releaseVersion);
+            AstroSync.needsUpdate = VersionUtils.isVersionUpdated(repoName, releaseVersion);
 
             if (!AstroSync.needsUpdate) {
                 AstroSync.LOGGER.info("No new version available");
@@ -56,7 +39,7 @@ public class AstroSyncClient {
             AstroSync.LOGGER.info("New version available: " + releaseVersion);
             AstroSync.newVersion = releaseVersion;
 
-            String downloadUrl = NetworkUtils.getReleaseDownloadUrl(latestRelease, REPNAME, releaseVersion);
+            String downloadUrl = NetworkUtils.getReleaseDownloadUrl(latestRelease, repoName, releaseVersion);
 
             if (downloadUrl == null) {
                 AstroSync.LOGGER.error("Download URL not found");
@@ -100,7 +83,7 @@ public class AstroSyncClient {
                 return;
             }
 
-            FileUtils.upsertVersionFile(REPNAME, releaseVersion);
+            FileUtils.upsertVersionFile(repoName, releaseVersion);
             AstroSync.LOGGER.info("Version file updated to " + releaseVersion);
 
             FileUtils.cleanTempFolder();

@@ -3,7 +3,7 @@ package com.dannbrown.astrosync.core;
 import com.dannbrown.astrosync.AstroSync;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import net.minecraft.client.Minecraft;
+import net.fabricmc.loader.api.FabricLoader;
 
 import java.io.*;
 import java.net.URL;
@@ -11,7 +11,7 @@ import java.nio.file.Path;
 import java.util.List;
 
 public class FileUtils {
-  public static final Path PATH = Minecraft.getInstance().gameDirectory.toPath();
+  public static final Path PATH = FabricLoader.getInstance().getGameDir();
   public static final File MOD_PATH = resolvePath(AstroSync.MOD_ID);
   public static final File TEMP_PATH = MOD_PATH != null ? new File(MOD_PATH, "temp") : null;
   public static final String TEMP_ZIP_NAME = "latestVersion.zip";

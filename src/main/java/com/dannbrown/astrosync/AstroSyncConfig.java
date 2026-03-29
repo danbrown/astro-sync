@@ -1,24 +1,63 @@
 package com.dannbrown.astrosync;
 
-import net.neoforged.neoforge.common.ModConfigSpec;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import net.fabricmc.loader.api.FabricLoader;
+
+import java.io.IOException;
+import java.io.Reader;
+import java.io.Writer;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 public class AstroSyncConfig {
+    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+    private static final String FILE_NAME = AstroSync.MOD_ID + ".json";
 
-  public static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
-  public static final ModConfigSpec SPEC;
+    private String repoOwner = "";
+    private String repoName = "";
 
-  public static final ModConfigSpec.ConfigValue<String> RepoOwner;
-  public static final ModConfigSpec.ConfigValue<String> RepoName;
+    private static AstroSyncConfig instance = new AstroSyncConfig();
 
-  static {
-    BUILDER.push("Common configs for " + AstroSync.NAME + " mod");
+    public static void load() {
+        Path path = FabricLoader.getInstance().getConfigDir().resolve(FILE_NAME);
+        if (Files.isRegularFile(path)) {
+            try (Reader reader = Files.newBufferedReader(path)) {
+                AstroSyncConfig parsed = GSON.fromJson(reader, AstroSyncConfig.class);
+                if (parsed != null) {
+                    instance = parsed;
+                    if (instance.repoOwner == null) {
+                        instance.repoOwner = "";
+                    }
+                    if (instance.repoName == null) {
+                        instance.repoName = "";
+                    }
+                }
+            } catch (IOException e) {
+                AstroSync.LOGGER.error("Failed to load config {}", path, e);
+            }
+        } else {
+            save();
+        }
+    }
 
-    RepoOwner = BUILDER.comment("The owner of the github repo to check for updates")
-            .define("RepoOwner", "");
-    RepoName = BUILDER.comment("The name of the github repo to check for updates")
-            .define("RepoName", "");
+    public static void save() {
+        Path path = FabricLoader.getInstance().getConfigDir().resolve(FILE_NAME);
+        try {
+            Files.createDirectories(path.getParent());
+            try (Writer writer = Files.newBufferedWriter(path)) {
+                GSON.toJson(instance, writer);
+            }
+        } catch (IOException e) {
+            AstroSync.LOGGER.error("Failed to save config {}", path, e);
+        }
+    }
 
-    BUILDER.pop();
-    SPEC = BUILDER.build();
-  }
+    public static String getRepoOwner() {
+        return instance.repoOwner;
+    }
+
+    public static String getRepoName() {
+        return instance.repoName;
+    }
 }
