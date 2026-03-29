@@ -8,7 +8,6 @@ import com.dannbrown.astrosync.core.VersionUtils;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import java.io.File;
-import java.util.List;
 
 public class AstroSyncClient implements ClientModInitializer {
     @Override
@@ -54,30 +53,28 @@ public class AstroSyncClient implements ClientModInitializer {
                 return;
             }
 
-            List<String> folders;
-            try {
-                folders = UnzipUtils.listZipFolders(zipPath.toPath());
-            } catch (Exception e) {
-                AstroSync.LOGGER.error("Error reading zip file: " + e.getMessage());
-                return;
-            }
-
-            if (folders.isEmpty()) {
-                AstroSync.LOGGER.error("Stop: The modpack zip file was empty or corrupted.");
-                return;
-            }
-
-            FileUtils.deleteOldVersionFolders(folders);
-
             if (FileUtils.PATH == null) {
                 AstroSync.LOGGER.error("Minecraft path not found");
                 return;
             }
 
+            boolean hasContent;
             try {
-                AstroSync.LOGGER.info("Extracting new version files...");
-                UnzipUtils.unzip(zipPath.toPath(), FileUtils.PATH);
-                AstroSync.LOGGER.info("New version extracted successfully");
+                hasContent = UnzipUtils.hasUpdatableContent(zipPath.toPath(), FileUtils.PATH);
+            } catch (Exception e) {
+                AstroSync.LOGGER.error("Error reading zip file: " + e.getMessage());
+                return;
+            }
+
+            if (!hasContent) {
+                AstroSync.LOGGER.error("Stop: The modpack zip has nothing to apply (no mergeable files and no valid manifest deletes).");
+                return;
+            }
+
+            try {
+                AstroSync.LOGGER.info("Applying update (manifest deletes, then merge)...");
+                UnzipUtils.applyUpdateFromZip(zipPath.toPath(), FileUtils.PATH);
+                AstroSync.LOGGER.info("Update applied successfully");
             } catch (Exception e) {
                 AstroSync.LOGGER.error("Error extracting files: " + e.getMessage());
                 return;

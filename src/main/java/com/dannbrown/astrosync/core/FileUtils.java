@@ -8,7 +8,6 @@ import net.fabricmc.loader.api.FabricLoader;
 import java.io.*;
 import java.net.URL;
 import java.nio.file.Path;
-import java.util.List;
 
 public class FileUtils {
   public static final Path PATH = FabricLoader.getInstance().getGameDir();
@@ -83,15 +82,6 @@ public class FileUtils {
       }
     } catch (Exception e) {
       AstroSync.LOGGER.error("Error downloading new release: " + e.getMessage());
-    }
-  }
-
-  public static void deleteOldVersionFolders(List<String> folders) {
-    for (String folderName : folders) {
-      File folder = PATH != null ? PATH.resolve(folderName).toFile() : null;
-      if (folder != null && folder.exists()) {
-        deleteRecursively(folder);
-      }
     }
   }
 
