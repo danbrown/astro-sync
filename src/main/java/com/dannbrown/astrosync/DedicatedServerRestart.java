@@ -21,8 +21,8 @@ final class DedicatedServerRestart {
     static void scheduleRestart(MinecraftServer server, Path workingDir) {
         Optional<List<String>> command = buildRelaunchCommand();
         if (command.isEmpty()) {
-            AstroSync.LOGGER.error(
-                    "AstroSync: Update applied but auto-restart is not available (could not read process command). Stop and start the server manually to load new files.");
+            AstroSyncLog.error(
+                    "Update applied but auto-restart is not available (could not read process command). Stop and start the server manually to load new files.");
             return;
         }
 
@@ -38,13 +38,13 @@ final class DedicatedServerRestart {
                         .directory(workingDir.toFile())
                         .inheritIO()
                         .start();
-                AstroSync.LOGGER.info("AstroSync: replacement server process started.");
+                AstroSyncLog.info("Replacement server process started.");
             } catch (IOException e) {
-                AstroSync.LOGGER.error("AstroSync: failed to start replacement server process", e);
+                AstroSyncLog.error("Failed to start replacement server process", e);
             }
         }, "astrosync-relaunch"));
 
-        AstroSync.LOGGER.warn("AstroSync: update applied — stopping dedicated server for restart...");
+        AstroSyncLog.warn("Update applied — stopping dedicated server for restart...");
         server.execute(() -> server.halt(false));
     }
 

@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.fabricmc.loader.api.FabricLoader;
 
+
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
@@ -34,7 +35,7 @@ public class AstroSyncConfig {
                     }
                 }
             } catch (IOException e) {
-                AstroSync.LOGGER.error("Failed to load config {}", path, e);
+                AstroSyncLog.error("Failed to load config " + path, e);
             }
         } else {
             save();
@@ -49,7 +50,7 @@ public class AstroSyncConfig {
                 GSON.toJson(instance, writer);
             }
         } catch (IOException e) {
-            AstroSync.LOGGER.error("Failed to save config {}", path, e);
+            AstroSyncLog.error("Failed to save config " + path, e);
         }
     }
 

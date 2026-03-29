@@ -1,6 +1,6 @@
 package com.dannbrown.astrosync.core;
 
-import com.dannbrown.astrosync.AstroSync;
+import com.dannbrown.astrosync.AstroSyncLog;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
@@ -53,22 +53,22 @@ public final class UpdateManifest {
         String action = a.action != null ? a.action.trim().toLowerCase() : "";
         if (!"delete".equals(action)) {
           if (a.action != null && !a.action.isEmpty()) {
-            AstroSync.LOGGER.warn("manifest.json: unknown action '{}', skipping entry", a.action);
+            AstroSyncLog.warn("manifest.json: unknown action '{}', skipping entry", a.action);
           }
           continue;
         }
         if (a.filename == null || a.filename.isBlank()) {
-          AstroSync.LOGGER.warn("manifest.json: delete entry missing filename, skipping");
+          AstroSyncLog.warn("manifest.json: delete entry missing filename, skipping");
           continue;
         }
         out.add(normalizeRelativePath(a.filename));
       }
       return out;
     } catch (JsonSyntaxException e) {
-      AstroSync.LOGGER.error("manifest.json: invalid JSON", e);
+      AstroSyncLog.error("manifest.json: invalid JSON", e);
       return Collections.emptyList();
     } catch (Exception e) {
-      AstroSync.LOGGER.error("manifest.json: failed to read", e);
+      AstroSyncLog.error("manifest.json: failed to read", e);
       return Collections.emptyList();
     }
   }

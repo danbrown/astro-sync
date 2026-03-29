@@ -1,6 +1,6 @@
 package com.dannbrown.astrosync.core;
 
-import com.dannbrown.astrosync.AstroSync;
+import com.dannbrown.astrosync.AstroSyncLog;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -35,49 +35,51 @@ public class UnzipUtils {
 
   /**
    * Applies optional root {@code manifest.json} deletes, then merges the rest of the zip into the game
-   * directory. Root {@code manifest.json} is never written to disk.
+   * directory. Root {@code manifest.json} is never written to disk. Logs each added/replaced/deleted file
+   * to {@code astrosync/{repoName}.log}.
    */
-  public static void applyUpdateFromZip(Path zipFilePath, Path gameDirectory) throws IOException {
+  public static void applyUpdateFromZip(Path zipFilePath, Path gameDirectory, String repoName) throws IOException {
     if (!Files.exists(gameDirectory)) {
       Files.createDirectories(gameDirectory);
     }
+    FileUtils.appendUpdateLog(repoName, "--- update session start ---");
     try (ZipFile zip = new ZipFile(zipFilePath.toAbsolutePath().toString())) {
-      applyManifestDeletes(gameDirectory, UpdateManifest.readDeleteTargets(zip));
-      mergeZipEntriesIntoGameDir(zip, gameDirectory);
+      applyManifestDeletes(gameDirectory, UpdateManifest.readDeleteTargets(zip), repoName);
+      mergeZipEntriesIntoGameDir(zip, gameDirectory, repoName);
     }
+    FileUtils.appendUpdateLog(repoName, "--- update session end ---");
   }
 
   /**
-   * Merges the zip into the game directory (no manifest handling). Prefer {@link #applyUpdateFromZip}
-   * for release zips that may include a manifest.
+   * Merges the zip into the game directory (no manifest handling).
    */
   public static void unzipMergeIntoGameDir(Path zipFilePath, Path gameDirectory) throws IOException {
     if (!Files.exists(gameDirectory)) {
       Files.createDirectories(gameDirectory);
     }
     try (ZipFile zip = new ZipFile(zipFilePath.toAbsolutePath().toString())) {
-      mergeZipEntriesIntoGameDir(zip, gameDirectory);
+      mergeZipEntriesIntoGameDir(zip, gameDirectory, null);
     }
   }
 
-  private static void mergeZipEntriesIntoGameDir(ZipFile zip, Path gameDirectory) throws IOException {
+  private static void mergeZipEntriesIntoGameDir(ZipFile zip, Path gameDirectory, String repoName) throws IOException {
     Path gameNorm = gameDirectory.normalize();
     Enumeration<? extends ZipEntry> entries = zip.entries();
 
     while (entries.hasMoreElements()) {
       ZipEntry entry = entries.nextElement();
-      String name = entry.getName();
+      String name = entry.getName().replace('\\', '/');
       if (UpdateManifest.isRootManifestEntry(name)) {
         continue;
       }
       if (isProhibitedPath(name)) {
-        AstroSync.LOGGER.info(name + " skipped (prohibited path).");
+        AstroSyncLog.info(name + " skipped (prohibited path).");
         continue;
       }
 
       Path targetPath = gameDirectory.resolve(name).normalize();
       if (!targetPath.startsWith(gameNorm)) {
-        AstroSync.LOGGER.warn("Skipping zip entry outside game dir: " + name);
+        AstroSyncLog.warn("Skipping zip entry outside game dir: " + name);
         continue;
       }
 
@@ -86,32 +88,57 @@ public class UnzipUtils {
         continue;
       }
 
+      if (SelfModPaths.isThisModFile(targetPath)) {
+        AstroSyncLog.warn(
+                "Skipping overwrite of this mod's own JAR (remove AstroSync from the pack zip or install the new jar manually; overwriting it while running corrupts the game): "
+                        + name);
+        if (repoName != null) {
+          FileUtils.appendUpdateLog(repoName, "SKIPPED self-mod " + name);
+        }
+        continue;
+      }
+
       Files.createDirectories(targetPath.getParent());
+      boolean existed = Files.isRegularFile(targetPath);
       try (BufferedInputStream inputStream = new BufferedInputStream(zip.getInputStream(entry))) {
         extractFileReplacing(inputStream, targetPath);
+      }
+      if (repoName != null) {
+        FileUtils.appendUpdateLog(repoName, (existed ? "REPLACED " : "ADDED ") + name);
       }
     }
   }
 
-  private static void applyManifestDeletes(Path gameDirectory, List<String> relativePaths) throws IOException {
+  private static void applyManifestDeletes(Path gameDirectory, List<String> relativePaths, String repoName) throws IOException {
     for (String rel : relativePaths) {
       if (rel == null || rel.isEmpty()) {
         continue;
       }
-      if (isProhibitedPath(rel)) {
-        AstroSync.LOGGER.warn("manifest delete skipped (prohibited): {}", rel);
+      String norm = rel.replace('\\', '/');
+      if (isProhibitedPath(norm)) {
+        AstroSyncLog.warn("manifest delete skipped (prohibited): {}", rel);
         continue;
       }
-      Path target = resolveUnderGameDir(gameDirectory, rel);
+      Path target = resolveUnderGameDir(gameDirectory, norm);
       if (target == null) {
-        AstroSync.LOGGER.warn("manifest delete skipped (outside game dir): {}", rel);
+        AstroSyncLog.warn("manifest delete skipped (outside game dir): {}", rel);
+        continue;
+      }
+      if (SelfModPaths.isThisModFile(target)) {
+        AstroSyncLog.warn("manifest delete skipped (would remove this mod's own JAR): {}", norm);
+        if (repoName != null) {
+          FileUtils.appendUpdateLog(repoName, "SKIPPED self-mod-delete " + norm);
+        }
         continue;
       }
       if (Files.isRegularFile(target)) {
         Files.deleteIfExists(target);
-        AstroSync.LOGGER.info("Deleted (manifest): {}", rel);
+        AstroSyncLog.info("Deleted (manifest): {}", norm);
+        if (repoName != null) {
+          FileUtils.appendUpdateLog(repoName, "DELETED " + norm);
+        }
       } else if (Files.isDirectory(target)) {
-        AstroSync.LOGGER.warn("manifest delete skipped (not a file): {}", rel);
+        AstroSyncLog.warn("manifest delete skipped (not a file): {}", rel);
       }
     }
   }
@@ -142,7 +169,7 @@ public class UnzipUtils {
    */
   public static boolean hasUpdatableContent(Path zipFilePath, Path gameDirectory) throws IOException {
     if (!isValidZipFile(zipFilePath)) {
-      AstroSync.LOGGER.error("Invalid modpack zip file, or it was incorrectly downloaded.");
+      AstroSyncLog.error("Invalid modpack zip file, or it was incorrectly downloaded.");
       return false;
     }
     try (ZipFile zip = new ZipFile(zipFilePath.toAbsolutePath().toString())) {

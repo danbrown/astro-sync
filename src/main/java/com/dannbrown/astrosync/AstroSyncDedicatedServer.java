@@ -23,13 +23,13 @@ public class AstroSyncDedicatedServer implements DedicatedServerModInitializer {
 
         CompletableFuture.runAsync(() -> {
             try {
-                AstroSyncUpdate.Result result = AstroSyncUpdate.checkAndApply();
-                if (result == AstroSyncUpdate.Result.APPLIED) {
+                UpdateApplyResult result = AstroSyncUpdate.checkAndApply();
+                if (result == UpdateApplyResult.APPLIED) {
                     Path gameDir = FabricLoader.getInstance().getGameDir();
                     server.execute(() -> DedicatedServerRestart.scheduleRestart(server, gameDir));
                 }
             } catch (Exception e) {
-                AstroSync.LOGGER.error("AstroSync dedicated update check failed", e);
+                AstroSyncLog.error("Dedicated server update check failed", e);
             }
         });
     }
