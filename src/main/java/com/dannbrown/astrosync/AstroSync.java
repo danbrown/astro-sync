@@ -1,12 +1,13 @@
 package com.dannbrown.astrosync;
 
-import net.fabricmc.api.ModInitializer;
+import net.neoforged.fml.common.Mod;
 
-public class AstroSync implements ModInitializer {
+@Mod(AstroSync.MOD_ID)
+public class AstroSync {
     public static final String MOD_ID = "astrosync";
     public static final String NAME = "Astro Sync";
 
-    @Override
-    public void onInitialize() {
+    public AstroSync() {
+        AstroSyncConfig.load();
     }
 }

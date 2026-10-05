@@ -4,7 +4,7 @@ import com.dannbrown.astrosync.AstroSync;
 import com.dannbrown.astrosync.AstroSyncLog;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import net.fabricmc.loader.api.FabricLoader;
+import net.neoforged.fml.loading.FMLPaths;
 
 import java.io.*;
 import java.net.URL;
@@ -15,7 +15,7 @@ import java.nio.file.StandardOpenOption;
 import java.time.Instant;
 
 public class FileUtils {
-  public static final Path PATH = FabricLoader.getInstance().getGameDir();
+  public static final Path PATH = FMLPaths.GAMEDIR.get();
   public static final File MOD_PATH = resolvePath(AstroSync.MOD_ID);
   public static final File TEMP_PATH = MOD_PATH != null ? new File(MOD_PATH, "temp") : null;
   public static final String TEMP_ZIP_NAME = "latestVersion.zip";

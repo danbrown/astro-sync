@@ -2,7 +2,7 @@ package com.dannbrown.astrosync;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import net.fabricmc.loader.api.FabricLoader;
+import net.neoforged.fml.loading.FMLPaths;
 
 
 import java.io.IOException;
@@ -21,7 +21,7 @@ public class AstroSyncConfig {
     private static AstroSyncConfig instance = new AstroSyncConfig();
 
     public static void load() {
-        Path path = FabricLoader.getInstance().getConfigDir().resolve(FILE_NAME);
+        Path path = FMLPaths.CONFIGDIR.get().resolve(FILE_NAME);
         if (Files.isRegularFile(path)) {
             try (Reader reader = Files.newBufferedReader(path)) {
                 AstroSyncConfig parsed = GSON.fromJson(reader, AstroSyncConfig.class);
@@ -43,7 +43,7 @@ public class AstroSyncConfig {
     }
 
     public static void save() {
-        Path path = FabricLoader.getInstance().getConfigDir().resolve(FILE_NAME);
+        Path path = FMLPaths.CONFIGDIR.get().resolve(FILE_NAME);
         try {
             Files.createDirectories(path.getParent());
             try (Writer writer = Files.newBufferedWriter(path)) {

@@ -1,22 +1,24 @@
 package com.dannbrown.astrosync;
 
-import net.fabricmc.api.DedicatedServerModInitializer;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.server.MinecraftServer;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.loading.FMLPaths;
+import net.neoforged.neoforge.event.server.ServerStartedEvent;
 
 import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 
-public class AstroSyncDedicatedServer implements DedicatedServerModInitializer {
+@EventBusSubscriber(modid = AstroSync.MOD_ID, value = Dist.DEDICATED_SERVER)
+public final class AstroSyncDedicatedServer {
 
-    @Override
-    public void onInitializeServer() {
-        AstroSyncConfig.load();
-        ServerLifecycleEvents.SERVER_STARTED.register(AstroSyncDedicatedServer::onServerStarted);
+    private AstroSyncDedicatedServer() {
     }
 
-    private static void onServerStarted(MinecraftServer server) {
+    @SubscribeEvent
+    public static void onServerStarted(ServerStartedEvent event) {
+        MinecraftServer server = event.getServer();
         if (!server.isDedicatedServer()) {
             return;
         }
@@ -25,7 +27,7 @@ public class AstroSyncDedicatedServer implements DedicatedServerModInitializer {
             try {
                 UpdateApplyResult result = AstroSyncUpdate.checkAndApply();
                 if (result == UpdateApplyResult.APPLIED) {
-                    Path gameDir = FabricLoader.getInstance().getGameDir();
+                    Path gameDir = FMLPaths.GAMEDIR.get();
                     server.execute(() -> DedicatedServerRestart.scheduleRestart(server, gameDir));
                 }
             } catch (Exception e) {

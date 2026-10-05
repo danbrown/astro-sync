@@ -1,14 +1,26 @@
 package com.dannbrown.astrosync;
 
-import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.minecraft.client.Minecraft;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
 
-public class AstroSyncClient implements ClientModInitializer {
-    @Override
-    public void onInitializeClient() {
-        AstroSyncConfig.load();
-        ClientLifecycleEvents.CLIENT_STARTED.register(c -> c.execute(AstroSyncClient::checkForUpdates));
+@EventBusSubscriber(modid = AstroSync.MOD_ID, value = Dist.CLIENT)
+public final class AstroSyncClient {
+
+    private static boolean checked = false;
+
+    private AstroSyncClient() {
+    }
+
+    @SubscribeEvent
+    public static void onClientTick(ClientTickEvent.Post event) {
+        if (checked) {
+            return;
+        }
+        checked = true;
+        checkForUpdates();
     }
 
     private static void checkForUpdates() {

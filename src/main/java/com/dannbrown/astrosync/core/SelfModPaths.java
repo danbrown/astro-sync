@@ -1,7 +1,9 @@
 package com.dannbrown.astrosync.core;
 
 import com.dannbrown.astrosync.AstroSync;
-import net.fabricmc.loader.api.FabricLoader;
+import net.neoforged.fml.ModList;
+import net.neoforged.neoforgespi.language.IModFileInfo;
+import net.neoforged.neoforgespi.locating.IModFile;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -20,24 +22,31 @@ public final class SelfModPaths {
         if (path == null) {
             return false;
         }
+        IModFileInfo modFileInfo = ModList.get().getModFileById(AstroSync.MOD_ID);
+        if (modFileInfo == null) {
+            return false;
+        }
+        IModFile modFile = modFileInfo.getFile();
+        if (modFile == null) {
+            return false;
+        }
+        Path root = modFile.getFilePath();
+        if (root == null) {
+            return false;
+        }
+
         Path normalized = path.toAbsolutePath().normalize();
-        return FabricLoader.getInstance().getModContainer(AstroSync.MOD_ID)
-                .map(container -> {
-                    for (Path root : container.getRootPaths()) {
-                        try {
-                            Path r = root.toAbsolutePath().normalize();
-                            if (normalized.equals(r)) {
-                                return true;
-                            }
-                            if (Files.exists(normalized) && Files.exists(r) && Files.isSameFile(normalized, r)) {
-                                return true;
-                            }
-                        } catch (IOException ignored) {
-                            return false;
-                        }
-                    }
-                    return false;
-                })
-                .orElse(false);
+        try {
+            Path r = root.toAbsolutePath().normalize();
+            if (normalized.equals(r)) {
+                return true;
+            }
+            if (Files.exists(normalized) && Files.exists(r) && Files.isSameFile(normalized, r)) {
+                return true;
+            }
+        } catch (IOException ignored) {
+            return false;
+        }
+        return false;
     }
 }
